@@ -49,4 +49,5 @@ def main():
     N = int(input("Enter number: "))
     print(algorithm_p_method(N))
 
-main()
+if __name__ == "__main__":
+    main()

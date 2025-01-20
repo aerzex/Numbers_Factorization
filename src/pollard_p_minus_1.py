@@ -60,4 +60,5 @@ def main():
     N = int(input("Enter number: "))
     print(algorithm_pollard_p_minus_1(N))
 
-main()
+if __name__ == "__main__":
+    main()
