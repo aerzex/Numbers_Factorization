@@ -16,10 +16,13 @@ def algorithm_fast_pow(x, y, modulus=None):
             inverse = algorithm_euclid_extended(x, modulus)[1]
             if inverse is None:
                 raise ValueError("Modular inverse does not exist")
-            return inverse * algorithm_fast_pow(x, -y, modulus) % modulus
+            return algorithm_fast_pow(inverse, -y, modulus)
+    
+    if y == 0:
+        return 1 % modulus if modulus else 1
+    
     result = 1
-    base = x if modulus is None else x % modulus
-    y = abs(y)
+    base = x % modulus if modulus else x
     while y > 0:
         if y & 1:
             result = (result * base) % modulus if modulus else result * base
