@@ -1,5 +1,6 @@
 import random
 import math
+import secrets
 
 def algorithm_euclid_extended(x, y):
     if x == 0:
@@ -153,15 +154,12 @@ def algorithm_comprasion_system(system):
     return chinese_remainder_theorem(solved_system)
 
 
-def algorithm_generate_prime(bit_length):
-    prime = 1
-    for _ in range(bit_length - 1):
-        prime <<= random.randint(0, 1)
-
-    prime |= 1
-
+def algorithm_generate_prime(bit_length, k=50):
     while True:
-        if algorithm_Miller_Rabin_test(prime):
+        prime = secrets.randbits(bit_length)
+        prime |= (1 << (bit_length - 1)) | 1  
+
+        if algorithm_Miller_Rabin_test(prime, k):
             return prime
         
 def algorithm_second_degree_comparison(a, p):
@@ -219,3 +217,64 @@ def algorithm_mul_polynomials(a, b, p, irreducible):
             result[i] %= p
         result.pop(0)
     return result
+
+def algorithm_rho_pollard_fact(N):
+    if algorithm_Miller_Rabin_test(N):
+        return [N]
+    if N == 1:
+        return None
+
+    a, b = random.randint(1, N - 1), random.randint(1, N - 1)
+    divisors = []
+
+    for _ in range(10000):
+        if N == 1:
+            break
+        c = random.randint(1, 10)
+        a = spfunc(a, N, c)
+        b = spfunc(spfunc(b, N, c), N, c)
+        d = algorithm_euclid_extended(abs(a - b), N)[0]
+
+        if 1 < d < N:
+            if algorithm_Miller_Rabin_test(d):
+                divisors.append(d)
+            else:
+                divisors += algorithm_rho_pollard_fact(d)
+            N //= d
+        elif d == 4:
+            divisors += [2, 2]
+            N //= d
+        else:
+            a, b = random.randint(1, N - 1), random.randint(1, N - 1)
+
+    if N > 1:
+        divisors.append(N)
+
+    return divisors
+
+def spfunc(x, N, c=None):
+    if c == None:
+        return (algorithm_fast_pow(x, 2) + 1) % N
+    else:
+        return (algorithm_fast_pow(x, 2) + c) % N
+
+def algorithm_all_divisors(N):
+    prime_factors = algorithm_rho_pollard_fact(N)
+    if not prime_factors:
+        return [1]  
+
+    unique_factors = list(set(prime_factors))
+    divisors = [1]
+
+    for factor in unique_factors:
+        max_power = prime_factors.count(factor)
+        current_divisors = divisors.copy()
+
+        for power in range(1, max_power + 1):
+            for d in current_divisors:
+                new_divisor = d * (factor ** power)
+                if new_divisor not in divisors:
+                    divisors.append(new_divisor)
+
+    divisors.sort()
+    return divisors
